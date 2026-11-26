@@ -145,7 +145,9 @@ repositories {
             includeGroup "maven.modrinth"
         }
     }
-    maven { url "https://commoble.net/maven/" } // currently serving HTTP 526 (bad TLS cert)
+    // commoble.net/maven removed entirely: it answers HTTP 526 (broken TLS certificate), and
+    // Gradle treats that as a hard failure rather than "not here", so leaving it declared breaks
+    // resolution of unrelated artifacts such as cpw.mods:bootstraplauncher.
     maven {
         // location of the maven that hosts JEI files
         name = "Progwml6 maven"
