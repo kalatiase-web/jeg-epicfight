@@ -139,6 +139,14 @@ repositories {
             includeGroup "maven.modrinth"
         }
     }
+    // databuddy's upstream maven (commoble.net) is unreachable, so CI vendors the copy that is
+    // already bundled inside the published Hydrological jar into this local repo. See
+    // .github/workflows/build.yml. The upstream maven is kept below in case it comes back.
+    maven {
+        name = "LocalVendored"
+        url = uri("${rootProject.projectDir}/localmaven")
+        metadataSources { mavenPom(); artifact() }
+    }
     maven { url "https://commoble.net/maven/" }
     maven {
         // location of the maven that hosts JEI files

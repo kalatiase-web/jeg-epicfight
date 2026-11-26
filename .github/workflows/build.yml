@@ -25,6 +25,34 @@ jobs:
         with:
           gradle-version: '7.3'
 
+      - name: Vendor databuddy out of the published Hydrological jar
+        run: |
+          set -euo pipefail
+          # commoble.net/maven (databuddy's only published home) is unreachable, so take the copy
+          # the mod author already bundles inside the release jar via jarJar.
+          mkdir -p /tmp/vendor && cd /tmp/vendor
+          curl -fsSL -o hydrological.jar \
+            "https://api.modrinth.com/maven/maven/modrinth/hydrological/0.15.3/hydrological-0.15.3.jar"
+          unzip -o -q hydrological.jar 'META-INF/jarjar/*' -d extracted
+          echo "Bundled jars:" && ls -la extracted/META-INF/jarjar/
+          DB=$(ls extracted/META-INF/jarjar/databuddy*.jar | head -1)
+          echo "Using $DB"
+          DEST="$GITHUB_WORKSPACE/localmaven/commoble/databuddy/databuddy-1.20.1/4.0.0.0"
+          mkdir -p "$DEST"
+          cp "$DB" "$DEST/databuddy-1.20.1-4.0.0.0.jar"
+          cat > "$DEST/databuddy-1.20.1-4.0.0.0.pom" <<'POM'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <project xmlns="http://maven.apache.org/POM/4.0.0">
+            <modelVersion>4.0.0</modelVersion>
+            <groupId>commoble.databuddy</groupId>
+            <artifactId>databuddy-1.20.1</artifactId>
+            <version>4.0.0.0</version>
+            <packaging>jar</packaging>
+          </project>
+POM
+          sed -i 's/^          //' "$DEST/databuddy-1.20.1-4.0.0.0.pom"
+          ls -la "$DEST"
+
       - name: Build
         run: gradle build --no-daemon --stacktrace
 
