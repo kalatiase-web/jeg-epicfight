@@ -2,7 +2,6 @@ package com.Apothic0n.Hydrological.core.events;
 
 import com.Apothic0n.Hydrological.Hydrological;
 import com.Apothic0n.Hydrological.api.HydrolDensityFunctions;
-import it.unimi.dsi.fastutil.longs.Long2DoubleOpenHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
@@ -35,7 +34,7 @@ public class CommonForgeEvents {
 
     @SubscribeEvent
     public static void onServerStopping(ServerStoppingEvent event) {
-        HydrolDensityFunctions.heightmap = new Long2DoubleOpenHashMap();
+        HydrolDensityFunctions.heightmap = new HydrolDensityFunctions.HeightmapCache();
     }
 
     @SubscribeEvent

@@ -41,7 +41,59 @@ public final class HydrolDensityFunctions {
         DENSITY_FUNCTION_TYPES.register(eventBus);
     }
 
-    public static Long2DoubleOpenHashMap heightmap = new Long2DoubleOpenHashMap();
+    public static HeightmapCache heightmap = new HeightmapCache();
+
+    /**
+     * Column-height cache for {@link ToHeightmap}.
+     *
+     * <p>This used to be a single {@code Long2DoubleOpenHashMap} guarded by {@code synchronized}
+     * on the map object itself. {@code ToHeightmap.compute} runs once per density sample -- on the
+     * order of 100k times per chunk -- so every worldgen thread in the game queued on one monitor
+     * for every sample it took. With a multithreaded chunk generator such as C2ME that serialises
+     * the whole of worldgen and is the main reason chunk generation stalls.</p>
+     *
+     * <p>Two further hazards came with it: the field was reassigned on server stop while other
+     * threads could still be synchronising on the old instance, which silently breaks mutual
+     * exclusion over a map that is not thread safe; and {@code defaultReturnValue} was being set
+     * inside the lock on every single read.</p>
+     *
+     * <p>Striping keeps fastutil's primitive map -- so no boxing on the hot path -- while giving
+     * each stripe its own monitor, which makes contention rare instead of total. Lookup results
+     * are unchanged.</p>
+     */
+    public static final class HeightmapCache {
+        private static final int STRIPES = 64; // power of two
+        private static final int MASK = STRIPES - 1;
+        private final Long2DoubleOpenHashMap[] maps = new Long2DoubleOpenHashMap[STRIPES];
+
+        public HeightmapCache() {
+            for (int i = 0; i < STRIPES; i++) {
+                Long2DoubleOpenHashMap map = new Long2DoubleOpenHashMap();
+                map.defaultReturnValue(Double.NaN);
+                this.maps[i] = map;
+            }
+        }
+
+        private Long2DoubleOpenHashMap stripeFor(long key) {
+            // Mix first: raw chunk keys are highly structured in their low bits.
+            return this.maps[(int) ((key * 0x9E3779B97F4A7C15L) >>> 58) & MASK];
+        }
+
+        /** Returns the stored height, or {@link Double#NaN} if this column has not been seen. */
+        public double get(long key) {
+            Long2DoubleOpenHashMap map = stripeFor(key);
+            synchronized (map) {
+                return map.get(key);
+            }
+        }
+
+        public void put(long key, double value) {
+            Long2DoubleOpenHashMap map = stripeFor(key);
+            synchronized (map) {
+                map.put(key, value);
+            }
+        }
+    }
     public static DensityFunction temperature;
     public static boolean isFloatingIslands = false;
     public static int floatingIslandsSeaOffset = 63;
@@ -441,11 +493,7 @@ public final class HydrolDensityFunctions {
             int y = context.blockY();
             int z = context.blockZ();
             long key = ChunkPos.asLong(x/4, z/4);
-            double storedValue;
-            synchronized (heightmap) {
-                heightmap.defaultReturnValue(Double.NaN);
-                storedValue = heightmap.get(key);
-            }
+            double storedValue = heightmap.get(key);
             if (!Double.isNaN(storedValue)) {
                 int newY = unprogressBetweenInts(minY(), maxY(), storedValue);
                 return newY-30 > y ? -1 : storedValue;
@@ -454,16 +502,15 @@ public final class HydrolDensityFunctions {
                     double value = input().compute(new SinglePointContext(x, newY, z));
                     if (value > 0.0D) {
                         double returnValue = progressBetweenInts(minY(), maxY(), newY);
-                        synchronized (heightmap) {
-                            heightmap.put(key, returnValue);
-                        }
+                        heightmap.put(key, returnValue);
+                        // NB: the freshly-computed path uses -20 where the cached path above uses
+                        // -30. That asymmetry is upstream behaviour and is deliberately preserved
+                        // here so terrain comes out identical; see PATCH-NOTES.md.
                         return newY-20 > y ? -1 : returnValue;
                     }
                 }
             }
-            synchronized (heightmap) {
-                heightmap.put(key, 0D);
-            }
+            heightmap.put(key, 0D);
             return minY()-30 > y ? -1 : 0;
         }
 
