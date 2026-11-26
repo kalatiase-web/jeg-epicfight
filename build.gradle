@@ -1,0 +1,96 @@
+plugins {
+    id 'eclipse'
+    id 'idea'
+    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+    id 'org.spongepowered.mixin' version '0.7.+'
+}
+
+version = "${mod_version}+mc${minecraft_version}"
+group = 'com.jegef'
+base { archivesName = "jeg-epicfight" }
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+minecraft {
+    mappings channel: 'official', version: minecraft_version
+
+    copyIdeResources = true
+
+    runs {
+        configureEach {
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', 'REGISTRIES'
+            property 'forge.logging.console.level', 'debug'
+            arg '-mixin.config=jegef.mixins.json'
+            mods { jegef { source sourceSets.main } }
+        }
+        client { }
+        server { }
+    }
+}
+
+mixin {
+    add sourceSets.main, 'jegef.refmap.json'
+    config 'jegef.mixins.json'
+}
+
+repositories {
+    mavenCentral()
+    maven { name = 'MinecraftForge'; url = 'https://maven.minecraftforge.net/' }
+    maven {
+        url = 'https://cursemaven.com'
+        content { includeGroup 'curse.maven' }
+    }
+    maven {
+        name = 'GeckoLib'
+        url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+    }
+    exclusiveContent {
+        forRepository { maven { name = 'Modrinth'; url = 'https://api.modrinth.com/maven' } }
+        forRepositories(fg.repository)
+        filter { includeGroup 'maven.modrinth' }
+    }
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+
+    // Epic Fight (Modrinth maven)
+    implementation fg.deobf("maven.modrinth:epic-fight:${epicfight_version}")
+
+    // Just Enough Guns (CurseForge maven)
+    implementation fg.deobf("curse.maven:just-enough-guns-${jeg_curse_project}:${jeg_curse_file}")
+
+    // JEG's animated items implement GeckoLib interfaces; needed on the compile classpath only.
+    compileOnly fg.deobf("software.bernie.geckolib:geckolib-forge-${minecraft_version}:${geckolib_version}")
+
+    annotationProcessor "org.spongepowered:mixin:${mixin_version}:processor"
+}
+
+tasks.named('processResources', ProcessResources).configure {
+    def replaceProperties = [
+            mod_id           : mod_id,
+            mod_version      : project.version,
+            minecraft_version: minecraft_version,
+            forge_version    : forge_version
+    ]
+    inputs.properties replaceProperties
+    filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
+        expand replaceProperties
+    }
+}
+
+tasks.named('jar', Jar).configure {
+    manifest {
+        attributes([
+                'Specification-Title'   : 'jeg-epicfight',
+                'Specification-Vendor'  : 'jegef',
+                'Specification-Version' : '1',
+                'Implementation-Title'  : project.name,
+                'Implementation-Version': project.version,
+                'Implementation-Vendor' : 'jegef',
+                'MixinConfigs'          : 'jegef.mixins.json'
+        ])
+    }
+    finalizedBy 'reobfJar'
+}
