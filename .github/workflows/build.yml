@@ -27,29 +27,58 @@ jobs:
 
       - name: Vendor databuddy out of the published Hydrological jar
         run: |
-          set -euo pipefail
+          set -uo pipefail
           # commoble.net/maven (databuddy's only published home) is unreachable, so take the copy
-          # the mod author already bundles inside the release jar via jarJar.
+          # the mod author bundles inside the release jar.
           mkdir -p /tmp/vendor && cd /tmp/vendor
           curl -fsSL -o hydrological.jar "https://api.modrinth.com/maven/maven/modrinth/hydrological/0.15.3/hydrological-0.15.3.jar"
-          unzip -o -q hydrological.jar 'META-INF/jarjar/*' -d extracted
-          echo "Bundled jars:"
-          ls -la extracted/META-INF/jarjar/
-          DB=$(ls extracted/META-INF/jarjar/databuddy*.jar | head -1)
+          echo "::group::Full jar listing"
+          unzip -l hydrological.jar
+          echo "::endgroup::"
+          ENTRY=$(unzip -Z1 hydrological.jar | grep -i 'databuddy.*\.jar$' | head -1 || true)
+          if [ -z "$ENTRY" ]; then
+            echo "No bundled databuddy found; trying upstream maven as a fallback."
+            curl -fsSL -o databuddy.jar "https://commoble.net/maven/commoble/databuddy/databuddy-1.20.1/4.0.0.0/databuddy-1.20.1-4.0.0.0.jar" || true
+            if [ ! -s databuddy.jar ]; then
+              echo "Could not obtain databuddy from either source. Listing above shows what the jar holds."
+              exit 1
+            fi
+            DB=/tmp/vendor/databuddy.jar
+          else
+            echo "Found bundled entry: $ENTRY"
+            unzip -o -q hydrological.jar "$ENTRY" -d extracted
+            DB="/tmp/vendor/extracted/$ENTRY"
+          fi
           echo "Using $DB"
-          DEST="$GITHUB_WORKSPACE/localmaven/commoble/databuddy/databuddy-1.20.1/4.0.0.0"
-          mkdir -p "$DEST"
-          cp "$DB" "$DEST/databuddy-1.20.1-4.0.0.0.jar"
-          POM="$DEST/databuddy-1.20.1-4.0.0.0.pom"
-          printf '%s\n' '<?xml version="1.0" encoding="UTF-8"?>' > "$POM"
-          printf '%s\n' '<project xmlns="http://maven.apache.org/POM/4.0.0">' >> "$POM"
-          printf '%s\n' '  <modelVersion>4.0.0</modelVersion>' >> "$POM"
-          printf '%s\n' '  <groupId>commoble.databuddy</groupId>' >> "$POM"
-          printf '%s\n' '  <artifactId>databuddy-1.20.1</artifactId>' >> "$POM"
-          printf '%s\n' '  <version>4.0.0.0</version>' >> "$POM"
-          printf '%s\n' '  <packaging>jar</packaging>' >> "$POM"
-          printf '%s\n' '</project>' >> "$POM"
-          ls -la "$DEST"
+          DEST="$GITHUB_WORKSPACE/localmaven/commoble/databuddy/databuddy-1.20.1"
+          mkdir -p "$DEST/4.0.0.0"
+          cp "$DB" "$DEST/4.0.0.0/databuddy-1.20.1-4.0.0.0.jar"
+          POM="$DEST/4.0.0.0/databuddy-1.20.1-4.0.0.0.pom"
+          {
+            printf '%s\n' '<?xml version="1.0" encoding="UTF-8"?>'
+            printf '%s\n' '<project xmlns="http://maven.apache.org/POM/4.0.0">'
+            printf '%s\n' '  <modelVersion>4.0.0</modelVersion>'
+            printf '%s\n' '  <groupId>commoble.databuddy</groupId>'
+            printf '%s\n' '  <artifactId>databuddy-1.20.1</artifactId>'
+            printf '%s\n' '  <version>4.0.0.0</version>'
+            printf '%s\n' '  <packaging>jar</packaging>'
+            printf '%s\n' '</project>'
+          } > "$POM"
+          # jarJar asks for the version as a range, which Gradle can only resolve from metadata.
+          META="$DEST/maven-metadata.xml"
+          {
+            printf '%s\n' '<?xml version="1.0" encoding="UTF-8"?>'
+            printf '%s\n' '<metadata>'
+            printf '%s\n' '  <groupId>commoble.databuddy</groupId>'
+            printf '%s\n' '  <artifactId>databuddy-1.20.1</artifactId>'
+            printf '%s\n' '  <versioning>'
+            printf '%s\n' '    <latest>4.0.0.0</latest>'
+            printf '%s\n' '    <release>4.0.0.0</release>'
+            printf '%s\n' '    <versions><version>4.0.0.0</version></versions>'
+            printf '%s\n' '  </versioning>'
+            printf '%s\n' '</metadata>'
+          } > "$META"
+          find "$GITHUB_WORKSPACE/localmaven" -type f -exec ls -la {} +
 
       - name: Build
         run: gradle build --no-daemon --stacktrace
