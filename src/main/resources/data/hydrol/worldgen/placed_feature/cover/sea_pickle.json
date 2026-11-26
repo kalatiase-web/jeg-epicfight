@@ -1,0 +1,37 @@
+{
+  "feature": "hydrol:cover/sea_pickle",
+  "placement": [
+    {
+      "type": "minecraft:noise_based_count",
+      "noise_to_count_ratio": 3,
+      "noise_factor": 32,
+      "noise_offset": -0.1
+    },
+    {
+      "type": "minecraft:heightmap",
+      "heightmap": "OCEAN_FLOOR_WG"
+    },
+    {
+      "type": "minecraft:block_predicate_filter",
+      "predicate": {
+        "type": "minecraft:matching_blocks",
+        "offset": [
+          0,
+          -1,
+          0
+        ],
+        "blocks": [
+          "minecraft:moss_block",
+          "minecraft:mossy_cobblestone",
+          "minecraft:gravel",
+          "minecraft:sand",
+          "minecraft:dirt",
+          "minecraft:clay"
+        ]
+      }
+    },
+    {
+      "type": "minecraft:biome"
+    }
+  ]
+}

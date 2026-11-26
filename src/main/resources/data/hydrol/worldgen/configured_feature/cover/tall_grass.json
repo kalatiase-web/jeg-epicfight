@@ -1,0 +1,23 @@
+{
+  "type": "hydrol:simple_block",
+  "config": {
+    "replace": false,
+    "to_place": {
+      "type": "minecraft:weighted_state_provider",
+      "entries": [
+        {
+          "weight": 75,
+          "data": {
+            "Name": "minecraft:grass"
+          }
+        },
+        {
+          "weight": 25,
+          "data": {
+            "Name": "minecraft:tall_grass"
+          }
+        }
+      ]
+    }
+  }
+}

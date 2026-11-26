@@ -1,0 +1,15 @@
+{
+  "type": "hydrol:simple_block",
+  "config": {
+    "replace": false,
+    "to_place": {
+      "type": "minecraft:simple_state_provider",
+      "state": {
+        "Name": "minecraft:snow",
+        "Properties": {
+          "layers": "2"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "type": "hydrol:tree",
+  "config": {
+    "must_be_fully_submerged": false,
+    "intersect": false,
+    "canopy_offset": 0,
+    "trunk": {
+      "type": "hydrol:thick_trunk",
+      "single_canopy": false,
+      "height": {
+        "type": "minecraft:uniform",
+        "value": {
+          "min_inclusive": 42,
+          "max_inclusive": 54
+        }
+      },
+      "branch_chance": {
+        "type": "minecraft:uniform",
+        "value": {
+          "min_inclusive": 4,
+          "max_inclusive": 7
+        }
+      },
+      "wood": {
+        "type": "minecraft:simple_state_provider",
+        "state": {
+          "Name": "minecraft:stripped_spruce_log"
+        }
+      }
+    },
+    "canopy": {
+      "type": "hydrol:square_canopy",
+      "height": 3,
+      "radius": {
+        "type": "minecraft:uniform",
+        "value": {
+          "min_inclusive": 3,
+          "max_inclusive": 4
+        }
+      },
+      "leaves": {
+        "type": "minecraft:simple_state_provider",
+        "state": {
+          "Name": "minecraft:spruce_leaves",
+          "Properties": {
+            "persistent": "false"
+          }
+        }
+      }
+    },
+    "decorations": [
+      {
+        "type": "hydrol:ground",
+        "offset": {
+          "type": "minecraft:uniform",
+          "value": {
+            "min_inclusive": -2,
+            "max_inclusive": 2
+          }
+        },
+        "radius": {
+          "type": "minecraft:uniform",
+          "value": {
+            "min_inclusive": 10,
+            "max_inclusive": 16
+          }
+        },
+        "replace_with": {
+          "type": "minecraft:simple_state_provider",
+          "state": {
+            "Name": "minecraft:podzol"
+          }
+        }
+      },
+      {
+        "type": "hydrol:leaf_piles",
+        "length": 20,
+        "leaves": {
+          "type": "minecraft:simple_state_provider",
+          "state": {
+            "Name": "hydrol:spruce_leaves_pile"
+          }
+        }
+      }
+    ]
+  }
+}

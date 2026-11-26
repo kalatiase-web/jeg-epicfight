@@ -1,0 +1,25 @@
+{
+  "values": [
+    "hydrol:acacia_leaves_pile",
+    "hydrol:acacia_leaves_wall",
+    "hydrol:azalea_leaves_pile",
+    "hydrol:azalea_leaves_wall",
+    "hydrol:birch_leaves_pile",
+    "hydrol:birch_leaves_wall",
+    "hydrol:cherry_leaves_pile",
+    "hydrol:cherry_leaves_wall",
+    "hydrol:dark_oak_leaves_pile",
+    "hydrol:dark_oak_leaves_wall",
+    "hydrol:flowering_azalea_leaves_pile",
+    "hydrol:flowering_azalea_leaves_wall",
+    "hydrol:jungle_leaves_pile",
+    "hydrol:jungle_leaves_wall",
+    "hydrol:mangrove_leaves_pile",
+    "hydrol:mangrove_leaves_wall",
+    "hydrol:oak_leaves_pile",
+    "hydrol:oak_leaves_wall",
+    "hydrol:spruce_leaves_pile",
+    "hydrol:spruce_leaves_wall",
+    "hydrol:dry_grass"
+  ]
+}

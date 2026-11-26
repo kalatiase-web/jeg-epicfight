@@ -1,0 +1,34 @@
+{
+  "compatibilityLevel": "JAVA_17",
+  "package": "com.Apothic0n.Hydrological.mixin",
+  "refmap": "mixins.hydrol.refmap.json",
+  "required": true,
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "mixins": [
+    "BeehiveDecoratorMixin",
+    "BiomeMixin",
+    "BlockItemMixin",
+    "DripstoneUtilsMixin",
+    "GrowingPlantBlockMixin",
+    "LeavesBlockMixin",
+    "LevelChunkMixin",
+    "NoiseBasedChunkGeneratorMixin",
+    "SaplingBlockMixin",
+    "SnowLayerBlockMixin",
+    "TallGrassBlockMixin",
+    "UtilMixin",
+    "WaterFluidMixin"
+  ],
+  "client": [
+    "BiomeClientMixin",
+    "BiomeSpecialEffectsGrassMixin",
+    "FoliageColorMixin",
+    "ItemBlockRenderTypesMixin",
+    "ScreenEffectRendererMixin"
+  ],
+  "server": [
+    "ServerLevelEntityCallbacksMixin"
+  ]
+}
