@@ -1,0 +1,41 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="MIT"
+
+[[mods]]
+modId="${mod_id}"
+version="${mod_version}"
+displayName="Better Combat Off The Player"
+description='''
+Stops Better Combat applying its weapon stance and swing to the player while Epic Fight mode is
+active, so Epic Fight animations no longer snap back into a Better Combat pose. Mobs are
+untouched, so Better Mob Combat keeps working. Client side.
+'''
+
+[[dependencies.${mod_id}]]
+    modId="forge"
+    mandatory=true
+    versionRange="[47,)"
+    ordering="NONE"
+    side="CLIENT"
+
+[[dependencies.${mod_id}]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.20.1,1.21)"
+    ordering="NONE"
+    side="CLIENT"
+
+[[dependencies.${mod_id}]]
+    modId="epicfight"
+    mandatory=true
+    versionRange="[20.9,)"
+    ordering="AFTER"
+    side="CLIENT"
+
+[[dependencies.${mod_id}]]
+    modId="bettercombat"
+    mandatory=true
+    versionRange="[1.8,)"
+    ordering="AFTER"
+    side="CLIENT"
